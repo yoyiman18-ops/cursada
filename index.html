@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mi Cursada</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f6f1e4;
+    --paper-line:#e2d8c0;
+    --margin-red:#c2564a;
+    --ink:#26241f;
+    --ink-soft:#6b6558;
+    --navy:#2a3b52;
+    --accent:#c2564a;
+    --card-bg:#fffdf8;
+    --card-shadow: 0 2px 0 rgba(38,36,31,0.08);
+  }
+  body.theme-noche{
+    --paper:#161a22;
+    --paper-line:#232a37;
+    --margin-red:#e2795f;
+    --ink:#eef0f3;
+    --ink-soft:#8f99a8;
+    --navy:#5b8dd9;
+    --accent:#e2795f;
+    --card-bg:#1e2531;
+    --card-shadow: 0 2px 0 rgba(0,0,0,0.35);
+  }
+  body.theme-mate{
+    --paper:#efe6d2;
+    --paper-line:#ddcda6;
+    --margin-red:#8a6d3b;
+    --ink:#3a2f1f;
+    --ink-soft:#7d6c4c;
+    --navy:#4f7a4a;
+    --accent:#c98a2c;
+    --card-bg:#fffaf0;
+    --card-shadow: 0 2px 0 rgba(58,47,31,0.1);
+  }
+  body.theme-pastel{
+    --paper:#f5eef8;
+    --paper-line:#e6d6ef;
+    --margin-red:#c77dbb;
+    --ink:#3d2f42;
+    --ink-soft:#8c7893;
+    --navy:#7b6fb0;
+    --accent:#c77dbb;
+    --card-bg:#fffdfe;
+    --card-shadow: 0 2px 0 rgba(61,47,66,0.08);
+  }
+  body.theme-bosque{
+    --paper:#eef1e7;
+    --paper-line:#d9e0cb;
+    --margin-red:#a5432f;
+    --ink:#233022;
+    --ink-soft:#63705a;
+    --navy:#2f5233;
+    --accent:#a5432f;
+    --card-bg:#f8faf3;
+    --card-shadow: 0 2px 0 rgba(35,48,34,0.08);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px);
+    background-size: 100% 34px;
+    background-position: 0 78px;
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:100px;
+    position:relative;
+    transition: background-color .2s ease, color .2s ease;
+  }
+  .header-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .theme-btn{
+    flex:0 0 auto;
+    width:40px;height:40px;
+    border-radius:50%;
+    border:1.5px solid var(--navy);
+    background:var(--card-bg);
+    font-size:17px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .theme-btn:active{transform:scale(0.94);}
+  .theme-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:6px;
+  }
+  .theme-card{
+    border:1.5px solid var(--paper-line);
+    border-radius:14px;
+    padding:12px;
+    cursor:pointer;
+    background:var(--card-bg);
+  }
+  .theme-card.picked{border-color:var(--navy); border-width:2px;}
+  .theme-swatches{display:flex; gap:6px; margin-bottom:8px;}
+  .theme-swatches span{
+    width:18px;height:18px;
+    border-radius:50%;
+    display:inline-block;
+  }
+  .theme-name{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:14px;
+  }
+  body::before{
+    content:'';
+    position:fixed;
+    top:0; bottom:0; left:34px;
+    width:2px;
+    background:var(--margin-red);
+    opacity:0.35;
+    z-index:0;
+  }
+  header{
+    padding:22px 20px 14px 44px;
+    position:relative;
+    z-index:1;
+  }
+  .eyebrow-btn{
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    font-weight:600;
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
+    font-family:'Space Grotesk';
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:30px;
+    margin:2px 0 0 0;
+    letter-spacing:-0.01em;
+  }
+  .view-toggle{
+    display:flex;
+    gap:6px;
+    margin-top:12px;
+  }
+  .view-btn{
+    padding:8px 13px;
+    border-radius:9px;
+    border:1.5px solid var(--paper-line);
+    background:var(--card-bg);
+    color:var(--ink-soft);
+    font-family:'Space Grotesk';
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+  }
+  .view-btn.active{
+    border-color:var(--navy);
+    color:var(--navy);
+    background:var(--card-bg);
+  }
+
+  .grid-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    margin-top:4px;
+  }
+  .grid-view{
+    display:grid;
+    grid-template-columns: 50px repeat(7, 76px);
+    min-width:582px;
+    position:relative;
+  }
+  .grid-cell{
+    border-right:1px solid var(--paper-line);
+    border-bottom:1px solid var(--paper-line);
+  }
+  .grid-daylabel{
+    font-size:11.5px;
+    font-weight:700;
+    text-align:center;
+    padding:8px 2px;
+    color:var(--ink-soft);
+    position:sticky;
+    top:0;
+    background:var(--paper);
+  }
+  .grid-hourlabel{
+    font-size:10px;
+    color:var(--ink-soft);
+    text-align:right;
+    padding-right:6px;
+    position:sticky;
+    left:0;
+    background:var(--paper);
+    transform:translateY(-7px);
+  }
+  .grid-corner{
+    position:sticky;
+    top:0; left:0;
+    background:var(--paper);
+    z-index:2;
+  }
+  .grid-block{
+    margin:1px 3px;
+    border-radius:8px;
+    padding:5px 6px;
+    font-size:10.5px;
+    line-height:1.25;
+    color:#fff;
+    overflow:hidden;
+    cursor:pointer;
+  }
+  .grid-block .gb-name{ font-weight:700; font-size:11px; }
+  .grid-block .gb-time{ opacity:0.85; font-size:9.5px; }
+  .export-btn{
+    margin-top:12px;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:var(--card-bg);
+    border:1.5px solid var(--navy);
+    color:var(--navy);
+    font-family:'Space Grotesk';
+    font-weight:600;
+    font-size:12.5px;
+    padding:9px 13px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .export-btn:active{transform:scale(0.97);}
+  .stats-bar{
+    margin:14px 20px 10px 44px;
+    background:var(--card-bg);
+    border-radius:14px;
+    padding:12px 15px;
+    box-shadow:var(--card-shadow);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    position:relative;
+    z-index:1;
+  }
+  .stat-next{
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .stat-hours{
+    font-size:12px;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+
+  .daybar{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:6px 20px 14px 44px;
+    position:relative;
+    z-index:1;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .daybar::-webkit-scrollbar{display:none;}
+  .daychip{
+    flex:0 0 auto;
+    font-family:'Space Grotesk';
+    font-weight:600;
+    font-size:13px;
+    padding:9px 14px;
+    border-radius:10px;
+    background:transparent;
+    border:1.5px solid var(--ink);
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+    position:relative;
+    transition:all .15s ease;
+  }
+  .daychip .dot{
+    display:inline-block;
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--accent);
+    margin-left:6px;
+    vertical-align:middle;
+    opacity:0;
+  }
+  .daychip.has-classes .dot{opacity:1;}
+  .daychip.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+  .daychip.active .dot{background:#fff;}
+
+  main{
+    padding:6px 20px 20px 44px;
+    position:relative;
+    z-index:1;
+    min-height:300px;
+  }
+  .empty{
+    margin-top:40px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14px;
+    line-height:1.6;
+  }
+  .empty span{
+    display:block;
+    font-family:'Fraunces';
+    font-size:19px;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .class-card{
+    background:var(--card-bg);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:12px;
+    box-shadow:var(--card-shadow);
+    border-left:5px solid var(--accent);
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    animation:fadein .25s ease;
+  }
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  .class-info .time{
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    letter-spacing:0.03em;
+  }
+  .class-info .name{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:19px;
+    margin:2px 0 3px 0;
+    line-height:1.15;
+  }
+  .class-info .meta{
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .class-actions{
+    display:flex;
+    gap:6px;
+    flex:0 0 auto;
+  }
+  .icon-btn{
+    width:30px;height:30px;
+    border-radius:8px;
+    border:none;
+    background:var(--paper-line);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--ink);
+    font-size:14px;
+  }
+  .icon-btn:active{transform:scale(0.92);}
+
+  .fab{
+    position:fixed;
+    bottom:24px; right:22px;
+    width:58px;height:58px;
+    border-radius:50%;
+    background:var(--navy);
+    color:#fff;
+    border:none;
+    font-size:28px;
+    font-weight:400;
+    box-shadow:0 6px 16px rgba(42,59,82,0.4);
+    cursor:pointer;
+    z-index:5;
+    display:flex;align-items:center;justify-content:center;
+    line-height:1;
+  }
+  .fab:active{transform:scale(0.94);}
+
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(38,36,31,0.5);
+    z-index:10;
+    display:none;
+    align-items:flex-end;
+  }
+  .overlay.open{display:flex;}
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    border-radius:20px 20px 0 0;
+    padding:22px 20px 26px 20px;
+    animation:slideup .22s ease;
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  @keyframes slideup{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .sheet h2{
+    font-family:'Fraunces';
+    font-size:22px;
+    margin:0 0 16px 0;
+  }
+  label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    margin:14px 0 6px 0;
+  }
+  input[type=text], select, input[type=time]{
+    width:100%;
+    padding:12px 13px;
+    border-radius:10px;
+    border:1.5px solid var(--paper-line);
+    background:var(--card-bg);
+    font-family:'Space Grotesk';
+    font-size:15px;
+    color:var(--ink);
+  }
+  input:focus, select:focus{outline:2px solid var(--navy); outline-offset:1px;}
+  .row2{display:flex; gap:10px;}
+  .row2 > div{flex:1;}
+  .days-select{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+  }
+  .day-pill{
+    padding:8px 12px;
+    border-radius:9px;
+    border:1.5px solid var(--paper-line);
+    background:var(--card-bg);
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .day-pill.picked{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+  .colors{display:flex; gap:9px; margin-top:2px;}
+  .swatch{
+    width:30px;height:30px;
+    border-radius:50%;
+    cursor:pointer;
+    border:2.5px solid transparent;
+  }
+  .swatch.picked{border-color:var(--ink);}
+  .sheet-actions{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+  }
+  .btn{
+    flex:1;
+    padding:13px;
+    border-radius:11px;
+    border:none;
+    font-family:'Space Grotesk';
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+  }
+  .btn-primary{background:var(--navy); color:#fff;}
+  .btn-ghost{background:transparent; border:1.5px solid var(--ink-soft); color:var(--ink);}
+  .btn-danger{background:transparent; color:var(--accent); border:1.5px solid var(--accent);}
+  .toast{
+    position:fixed;
+    top:16px; left:50%;
+    transform:translateX(-50%) translateY(-60px);
+    background:var(--ink);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:20px;
+    font-size:13px;
+    z-index:20;
+    transition:transform .25s ease;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div>
+      <button class="eyebrow-btn" id="btnCity">📍 <span id="cityLabel">Elegí tu ciudad</span> · cursada</button>
+      <h1>Mi semana</h1>
+    </div>
+    <button class="theme-btn" id="btnTheme" aria-label="Cambiar tema">🎨</button>
+  </div>
+  <div class="view-toggle">
+    <button class="view-btn active" id="btnViewList">☰ Lista</button>
+    <button class="view-btn" id="btnViewGrid">▦ Grilla</button>
+  </div>
+  <button class="export-btn" id="btnExport">📥 Agregar recordatorios a mi calendario</button>
+</header>
+
+<div class="overlay" id="cityOverlay">
+  <div class="sheet">
+    <h2>¿En qué ciudad estás?</h2>
+    <label>Ciudad</label>
+    <input type="text" id="fCity" placeholder="ej: Comodoro Rivadavia">
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="btnCityCancel">Cancelar</button>
+      <button class="btn btn-primary" id="btnCitySave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="themeOverlay">
+  <div class="sheet">
+    <h2>Elegí un fondo</h2>
+    <div class="theme-grid" id="themeGrid"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="btnThemeClose">Listo</button>
+    </div>
+  </div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+  <div class="stat-next" id="statNext">⏰ Cargá tus materias para ver la próxima clase</div>
+  <div class="stat-hours" id="statHours">🕒 0 hs esta semana</div>
+</div>
+
+<div class="daybar" id="daybar"></div>
+
+<main id="main"></main>
+
+<button class="fab" id="fabAdd" aria-label="Agregar materia">+</button>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2 id="sheetTitle">Nueva materia</h2>
+
+    <label>Materia</label>
+    <input type="text" id="fName" placeholder="ej: Programación II">
+
+    <div class="row2">
+      <div>
+        <label>Inicio</label>
+        <input type="time" id="fStart" value="18:00">
+      </div>
+      <div>
+        <label>Fin</label>
+        <input type="time" id="fEnd" value="20:00">
+      </div>
+    </div>
+
+    <label>Días</label>
+    <div class="days-select" id="daysPicker"></div>
+
+    <div class="row2">
+      <div>
+        <label>Aula / lugar (opcional)</label>
+        <input type="text" id="fPlace" placeholder="ej: Aula 4">
+      </div>
+      <div>
+        <label>Color</label>
+        <div class="colors" id="colorPicker"></div>
+      </div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="btnCancel">Cancelar</button>
+      <button class="btn btn-primary" id="btnSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Si se abre fuera de Claude (hosteado, GitHub Pages, etc.) no existe window.storage,
+// así que usamos localStorage del navegador como reemplazo automático.
+if(!window.storage){
+  window.storage = {
+    async get(key){
+      try{
+        const v = localStorage.getItem('miCursada_' + key);
+        return v === null ? null : { key, value: v };
+      }catch(e){ return null; }
+    },
+    async set(key, value){
+      try{
+        localStorage.setItem('miCursada_' + key, value);
+        return { key, value };
+      }catch(e){ return null; }
+    },
+    async delete(key){
+      try{ localStorage.removeItem('miCursada_' + key); return { key, deleted:true }; }
+      catch(e){ return null; }
+    }
+  };
+}
+
+const DAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const DAY_FULL = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const COLORS = ['#c2564a','#2a3b52','#7a8f5c','#c99b3f','#8a5a8f','#3d7a8a'];
+
+let classes = [];
+let activeDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+let editingId = null;
+let pickedDays = new Set();
+let pickedColor = COLORS[0];
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+}
+
+async function loadClasses(){
+  try{
+    const res = await window.storage.get('clases');
+    classes = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    classes = [];
+  }
+  render();
+}
+
+async function saveClasses(){
+  try{
+    await window.storage.set('clases', JSON.stringify(classes));
+  }catch(e){
+    showToast('No se pudo guardar :(');
+  }
+}
+
+function renderDaybar(){
+  const bar = document.getElementById('daybar');
+  bar.innerHTML = '';
+  DAYS.forEach((d, i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'daychip' + (i===activeDay ? ' active' : '') + (classes.some(c=>c.days.includes(i)) ? ' has-classes' : '');
+    chip.innerHTML = d + '<span class="dot"></span>';
+    chip.onclick = ()=>{ activeDay = i; render(); };
+    bar.appendChild(chip);
+  });
+}
+
+function timeToMin(t){
+  const [h,m] = t.split(':').map(Number);
+  return h*60+m;
+}
+
+function renderMain(){
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  const todays = classes
+    .filter(c=>c.days.includes(activeDay))
+    .sort((a,b)=>timeToMin(a.start)-timeToMin(b.start));
+
+  if(todays.length === 0){
+    main.innerHTML = `<div class="empty"><span>Nada para el ${DAY_FULL[activeDay].toLowerCase()}</span>Tocá el + para cargar una materia.</div>`;
+    return;
+  }
+
+  todays.forEach(c=>{
+    const card = document.createElement('div');
+    card.className = 'class-card';
+    card.style.borderLeftColor = c.color;
+    card.innerHTML = `
+      <div class="class-info">
+        <div class="time">${c.start} – ${c.end}</div>
+        <div class="name">${escapeHtml(c.name)}</div>
+        ${c.place ? `<div class="meta">${escapeHtml(c.place)}</div>` : ''}
+      </div>
+      <div class="class-actions">
+        <button class="icon-btn" data-edit="${c.id}">✎</button>
+        <button class="icon-btn" data-del="${c.id}">✕</button>
+      </div>
+    `;
+    main.appendChild(card);
+  });
+
+  main.querySelectorAll('[data-edit]').forEach(b=>{
+    b.onclick = ()=> openSheet(b.getAttribute('data-edit'));
+  });
+  main.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick = ()=> deleteClass(b.getAttribute('data-del'));
+  });
+}
+
+function fmtDuration(totalMin){
+  totalMin = Math.max(0, Math.round(totalMin));
+  const d = Math.floor(totalMin/1440);
+  const h = Math.floor((totalMin%1440)/60);
+  const m = totalMin%60;
+  const parts = [];
+  if(d) parts.push(d+'d');
+  if(h) parts.push(h+'h');
+  if(m || parts.length===0) parts.push(m+'min');
+  return parts.join(' ');
+}
+
+function getNextClassInfo(){
+  if(classes.length === 0) return null;
+  const now = new Date();
+  const nowIdx = now.getDay()===0 ? 6 : now.getDay()-1;
+  const nowMinutes = now.getHours()*60 + now.getMinutes();
+  let candidates = [];
+
+  classes.forEach(c=>{
+    const [sh,sm] = c.start.split(':').map(Number);
+    const [eh,em] = c.end.split(':').map(Number);
+    const startM = sh*60+sm, endM = eh*60+em;
+    c.days.forEach(d=>{
+      let dayOffset = d - nowIdx;
+      if(dayOffset < 0) dayOffset += 7;
+      if(dayOffset === 0 && endM <= nowMinutes) dayOffset = 7;
+      const isOngoing = dayOffset === 0 && startM <= nowMinutes && endM > nowMinutes;
+      const totalMinutesFromNow = dayOffset*1440 + startM - nowMinutes;
+      candidates.push({ name:c.name, endM, isOngoing, totalMinutesFromNow });
+    });
+  });
+
+  const ongoing = candidates.find(x=>x.isOngoing);
+  if(ongoing){
+    return { type:'ongoing', name: ongoing.name, remain: ongoing.endM - nowMinutes };
+  }
+  candidates.sort((a,b)=>a.totalMinutesFromNow - b.totalMinutesFromNow);
+  const next = candidates[0];
+  return { type:'upcoming', name: next.name, remain: next.totalMinutesFromNow };
+}
+
+function calcWeeklyHours(){
+  let totalMinutes = 0;
+  classes.forEach(c=>{
+    const [sh,sm] = c.start.split(':').map(Number);
+    const [eh,em] = c.end.split(':').map(Number);
+    let mins = (eh*60+em) - (sh*60+sm);
+    if(mins < 0) mins = 0;
+    totalMinutes += mins * c.days.length;
+  });
+  return totalMinutes / 60;
+}
+
+function renderStats(){
+  const nextEl = document.getElementById('statNext');
+  const hoursEl = document.getElementById('statHours');
+  const info = getNextClassInfo();
+
+  if(!info){
+    nextEl.textContent = '⏰ Cargá tus materias para ver la próxima clase';
+  } else if(info.type === 'ongoing'){
+    nextEl.textContent = `🟢 Ahora: ${info.name} — termina en ${fmtDuration(info.remain)}`;
+  } else {
+    nextEl.textContent = `⏰ ${info.name} arranca en ${fmtDuration(info.remain)}`;
+  }
+
+  const hs = calcWeeklyHours();
+  const hsTxt = (hs % 1 === 0) ? hs.toFixed(0) : hs.toFixed(1);
+  hoursEl.textContent = `🕒 ${hsTxt} hs de cursada esta semana`;
+}
+
+setInterval(renderStats, 30000);
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+let vista = 'lista'; // 'lista' | 'grilla'
+const GRID_START_HOUR = 8;
+const GRID_END_HOUR = 23;
+
+function render(){
+  renderStats();
+  const daybar = document.getElementById('daybar');
+  if(vista === 'lista'){
+    daybar.style.display = 'flex';
+    renderDaybar();
+    renderMain();
+  } else {
+    daybar.style.display = 'none';
+    renderGridView();
+  }
+}
+
+function renderGridView(){
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  if(classes.length === 0){
+    main.innerHTML = `<div class="empty"><span>Todavía no cargaste materias</span>Tocá el + para agregar la primera.</div>`;
+    return;
+  }
+
+  const totalSlots = (GRID_END_HOUR - GRID_START_HOUR) * 2;
+  const wrap = document.createElement('div');
+  wrap.className = 'grid-wrap';
+  const grid = document.createElement('div');
+  grid.className = 'grid-view';
+  grid.style.gridTemplateRows = `28px repeat(${totalSlots}, 22px)`;
+
+  const corner = document.createElement('div');
+  corner.className = 'grid-corner grid-cell';
+  grid.appendChild(corner);
+
+  DAYS.forEach(d=>{
+    const dl = document.createElement('div');
+    dl.className = 'grid-daylabel grid-cell';
+    dl.textContent = d;
+    grid.appendChild(dl);
+  });
+
+  for(let slot=0; slot<totalSlots; slot++){
+    const isHour = slot % 2 === 0;
+    const hourLabel = document.createElement('div');
+    hourLabel.className = 'grid-cell';
+    hourLabel.style.gridRow = (slot+2);
+    hourLabel.style.gridColumn = 1;
+    if(isHour){
+      hourLabel.innerHTML = `<div class="grid-hourlabel">${GRID_START_HOUR + slot/2}:00</div>`;
+    }
+    grid.appendChild(hourLabel);
+
+    for(let day=0; day<7; day++){
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      cell.style.gridRow = (slot+2);
+      cell.style.gridColumn = (day+2);
+      grid.appendChild(cell);
+    }
+  }
+
+  classes.forEach(c=>{
+    const [sh, sm] = c.start.split(':').map(Number);
+    const [eh, em] = c.end.split(':').map(Number);
+    const startSlot = Math.round(((sh*60+sm) - GRID_START_HOUR*60) / 30);
+    const endSlot = Math.round(((eh*60+em) - GRID_START_HOUR*60) / 30);
+    if(startSlot < 0 || endSlot > totalSlots) return;
+
+    c.days.forEach(day=>{
+      const block = document.createElement('div');
+      block.className = 'grid-block';
+      block.style.gridRow = `${startSlot+2} / ${endSlot+2}`;
+      block.style.gridColumn = (day+2);
+      block.style.background = c.color;
+      block.innerHTML = `<div class="gb-name">${escapeHtml(c.name)}</div><div class="gb-time">${c.start}</div>`;
+      block.onclick = ()=> openSheet(c.id);
+      grid.appendChild(block);
+    });
+  });
+
+  wrap.appendChild(grid);
+  main.appendChild(wrap);
+}
+
+async function setVista(v){
+  vista = v;
+  document.getElementById('btnViewList').classList.toggle('active', v === 'lista');
+  document.getElementById('btnViewGrid').classList.toggle('active', v === 'grilla');
+  await saveSettings();
+  render();
+}
+
+async function loadVista(){
+  if(vista){
+    document.getElementById('btnViewList').classList.toggle('active', vista === 'lista');
+    document.getElementById('btnViewGrid').classList.toggle('active', vista === 'grilla');
+  }
+}
+
+document.getElementById('btnViewList').onclick = ()=> setVista('lista');
+document.getElementById('btnViewGrid').onclick = ()=> setVista('grilla');
+
+function buildPickers(){
+  const dp = document.getElementById('daysPicker');
+  dp.innerHTML = '';
+  DAYS.forEach((d,i)=>{
+    const pill = document.createElement('div');
+    pill.className = 'day-pill' + (pickedDays.has(i) ? ' picked' : '');
+    pill.textContent = d;
+    pill.onclick = ()=>{
+      if(pickedDays.has(i)) pickedDays.delete(i); else pickedDays.add(i);
+      buildPickers();
+    };
+    dp.appendChild(pill);
+  });
+
+  const cp = document.getElementById('colorPicker');
+  cp.innerHTML = '';
+  COLORS.forEach(col=>{
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (pickedColor === col ? ' picked' : '');
+    sw.style.background = col;
+    sw.onclick = ()=>{ pickedColor = col; buildPickers(); };
+    cp.appendChild(sw);
+  });
+}
+
+function openSheet(id){
+  editingId = id || null;
+  const overlay = document.getElementById('overlay');
+  const title = document.getElementById('sheetTitle');
+
+  if(id){
+    const c = classes.find(x=>x.id === id);
+    title.textContent = 'Editar materia';
+    document.getElementById('fName').value = c.name;
+    document.getElementById('fStart').value = c.start;
+    document.getElementById('fEnd').value = c.end;
+    document.getElementById('fPlace').value = c.place || '';
+    pickedDays = new Set(c.days);
+    pickedColor = c.color;
+  } else {
+    title.textContent = 'Nueva materia';
+    document.getElementById('fName').value = '';
+    document.getElementById('fStart').value = '18:00';
+    document.getElementById('fEnd').value = '20:00';
+    document.getElementById('fPlace').value = '';
+    pickedDays = new Set([activeDay]);
+    pickedColor = COLORS[0];
+  }
+  buildPickers();
+  overlay.classList.add('open');
+}
+
+function closeSheet(){
+  document.getElementById('overlay').classList.remove('open');
+}
+
+async function saveFromSheet(){
+  const name = document.getElementById('fName').value.trim();
+  const start = document.getElementById('fStart').value;
+  const end = document.getElementById('fEnd').value;
+  const place = document.getElementById('fPlace').value.trim();
+
+  if(!name){ showToast('Poné el nombre de la materia'); return; }
+  if(pickedDays.size === 0){ showToast('Elegí al menos un día'); return; }
+
+  if(editingId){
+    const c = classes.find(x=>x.id === editingId);
+    c.name = name; c.start = start; c.end = end; c.place = place;
+    c.days = Array.from(pickedDays); c.color = pickedColor;
+  } else {
+    classes.push({
+      id: 'c' + Date.now(),
+      name, start, end, place,
+      days: Array.from(pickedDays),
+      color: pickedColor
+    });
+  }
+  await saveClasses();
+  closeSheet();
+  render();
+  showToast('Guardado ✓');
+}
+
+async function deleteClass(id){
+  classes = classes.filter(c=>c.id !== id);
+  await saveClasses();
+  render();
+  showToast('Eliminado');
+}
+
+const ICS_DAY = ['MO','TU','WE','TH','FR','SA','SU'];
+
+function pad(n){ return n.toString().padStart(2,'0'); }
+
+function fmtICS(d){
+  return d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + 'T' + pad(d.getHours()) + pad(d.getMinutes()) + '00';
+}
+
+function nextDateForWeekday(weekdayIdx){
+  // weekdayIdx: 0=Lun ... 6=Dom
+  const today = new Date();
+  const todayIdx = today.getDay() === 0 ? 6 : today.getDay() - 1;
+  let diff = weekdayIdx - todayIdx;
+  if(diff < 0) diff += 7;
+  const d = new Date(today);
+  d.setDate(today.getDate() + diff);
+  return d;
+}
+
+function generateICS(){
+  if(classes.length === 0){
+    showToast('Cargá alguna materia primero');
+    return null;
+  }
+  let ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Mi Cursada//ES',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/Argentina/Buenos_Aires',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:-0300',
+    'TZOFFSETTO:-0300',
+    'TZNAME:-03',
+    'END:STANDARD',
+    'END:VTIMEZONE'
+  ];
+
+  const now = new Date();
+  const stamp = fmtICS(now) + 'Z';
+
+  classes.forEach(c=>{
+    const [sh, sm] = c.start.split(':').map(Number);
+    const [eh, em] = c.end.split(':').map(Number);
+
+    c.days.forEach(dayIdx=>{
+      const base = nextDateForWeekday(dayIdx);
+      const start = new Date(base); start.setHours(sh, sm, 0, 0);
+      const end = new Date(base); end.setHours(eh, em, 0, 0);
+
+      ics.push(
+        'BEGIN:VEVENT',
+        'UID:' + c.id + '-' + dayIdx + '@micursada',
+        'DTSTAMP:' + stamp,
+        'DTSTART;TZID=America/Argentina/Buenos_Aires:' + fmtICS(start),
+        'DTEND;TZID=America/Argentina/Buenos_Aires:' + fmtICS(end),
+        'RRULE:FREQ=WEEKLY;BYDAY=' + ICS_DAY[dayIdx],
+        'SUMMARY:' + (c.name || 'Materia'),
+        'LOCATION:' + (c.place || ''),
+        'BEGIN:VALARM',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Empieza ' + (c.name || 'tu clase') + ' en 1 hora',
+        'TRIGGER:-PT60M',
+        'END:VALARM',
+        'END:VEVENT'
+      );
+    });
+  });
+
+  ics.push('END:VCALENDAR');
+  return ics.join('\r\n');
+}
+
+function exportICS(){
+  const ics = generateICS();
+  if(!ics) return;
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mi-cursada.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Descargado — abrilo para importarlo a tu calendario');
+}
+
+const THEMES = [
+  { id:'cuaderno', name:'Cuaderno', swatches:['#f6f1e4','#2a3b52','#c2564a'] },
+  { id:'theme-noche', name:'Nocturno', swatches:['#161a22','#5b8dd9','#e2795f'] },
+  { id:'theme-mate', name:'Mate', swatches:['#efe6d2','#4f7a4a','#c98a2c'] },
+  { id:'theme-pastel', name:'Pastel', swatches:['#f5eef8','#7b6fb0','#c77dbb'] },
+  { id:'theme-bosque', name:'Bosque', swatches:['#eef1e7','#2f5233','#a5432f'] },
+];
+
+let currentTheme = 'cuaderno';
+
+function applyTheme(themeId){
+  currentTheme = themeId;
+  document.body.className = themeId === 'cuaderno' ? '' : themeId;
+}
+
+function renderThemeGrid(){
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = '';
+  THEMES.forEach(t=>{
+    const card = document.createElement('div');
+    card.className = 'theme-card' + (currentTheme === t.id ? ' picked' : '');
+    card.innerHTML = `
+      <div class="theme-swatches">
+        ${t.swatches.map(c=>`<span style="background:${c}"></span>`).join('')}
+      </div>
+      <div class="theme-name">${t.name}</div>
+    `;
+    card.onclick = async ()=>{
+      applyTheme(t.id);
+      renderThemeGrid();
+      await saveSettings();
+    };
+    grid.appendChild(card);
+  });
+}
+
+async function loadTheme(){
+  if(currentTheme){ applyTheme(currentTheme); }
+}
+
+document.getElementById('btnTheme').onclick = ()=>{
+  renderThemeGrid();
+  document.getElementById('themeOverlay').classList.add('open');
+};
+document.getElementById('btnThemeClose').onclick = ()=>{
+  document.getElementById('themeOverlay').classList.remove('open');
+};
+document.getElementById('themeOverlay').onclick = (e)=>{
+  if(e.target.id === 'themeOverlay') document.getElementById('themeOverlay').classList.remove('open');
+};
+
+loadTheme();
+document.getElementById('btnExport').onclick = exportICS;
+document.getElementById('fabAdd').onclick = ()=> openSheet(null);
+document.getElementById('btnCancel').onclick = closeSheet;
+document.getElementById('btnSave').onclick = saveFromSheet;
+document.getElementById('overlay').onclick = (e)=>{ if(e.target.id === 'overlay') closeSheet(); };
+
+async function saveSettings(){
+  const data = {
+    ciudad: document.getElementById('cityLabel').textContent === 'Elegí tu ciudad' ? '' : document.getElementById('cityLabel').textContent,
+    tema: currentTheme,
+    vista: vista
+  };
+  try{
+    const result = await window.storage.set('ajustes', JSON.stringify(data));
+    if(!result) showToast('No se pudo guardar el ajuste');
+  }catch(e){
+    showToast('No se pudo guardar el ajuste');
+  }
+}
+
+async function loadSettings(){
+  try{
+    const res = await window.storage.get('ajustes');
+    if(res && res.value){
+      const data = JSON.parse(res.value);
+      if(data.ciudad) document.getElementById('cityLabel').textContent = data.ciudad;
+      if(data.tema) currentTheme = data.tema;
+      if(data.vista) vista = data.vista;
+    }
+  }catch(e){}
+}
+
+document.getElementById('btnCity').onclick = ()=>{
+  document.getElementById('fCity').value = document.getElementById('cityLabel').textContent === 'Elegí tu ciudad' ? '' : document.getElementById('cityLabel').textContent;
+  document.getElementById('cityOverlay').classList.add('open');
+};
+document.getElementById('btnCityCancel').onclick = ()=>{
+  document.getElementById('cityOverlay').classList.remove('open');
+};
+document.getElementById('cityOverlay').onclick = (e)=>{
+  if(e.target.id === 'cityOverlay') document.getElementById('cityOverlay').classList.remove('open');
+};
+document.getElementById('btnCitySave').onclick = async ()=>{
+  const val = document.getElementById('fCity').value.trim();
+  if(!val){ showToast('Escribí una ciudad'); return; }
+  document.getElementById('cityLabel').textContent = val;
+  await saveSettings();
+  document.getElementById('cityOverlay').classList.remove('open');
+  showToast('Ciudad guardada ✓');
+};
+
+async function init(){
+  await loadSettings();
+  loadTheme();
+  loadVista();
+  render();
+  loadClasses();
+}
+init();
+</script>
+</body>
+</html>
