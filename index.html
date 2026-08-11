@@ -377,6 +377,84 @@
   }
   .icon-btn:active{transform:scale(0.92);}
 
+  .exams-section{
+    margin:0 20px 10px 44px;
+    position:relative;
+    z-index:1;
+  }
+  .exams-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .exams-title{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:16px;
+  }
+  .exams-add{
+    background:none;
+    border:none;
+    color:var(--navy);
+    font-family:'Space Grotesk';
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    padding:4px;
+  }
+  .exam-card{
+    background:var(--card-bg);
+    border-radius:12px;
+    padding:11px 14px;
+    margin-bottom:8px;
+    box-shadow:var(--card-shadow);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    border-left:5px solid var(--navy);
+  }
+  .exam-card.soon{ border-left-color:var(--accent); }
+  .exam-card.past{ opacity:0.5; }
+  .exam-info .exam-name{
+    font-family:'Fraunces';
+    font-weight:600;
+    font-size:15.5px;
+  }
+  .exam-info .exam-date{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:1px;
+  }
+  .exam-info .exam-note{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:2px;
+    font-style:italic;
+  }
+  .exam-countdown{
+    font-size:12px;
+    font-weight:700;
+    color:var(--navy);
+    white-space:nowrap;
+    text-align:right;
+  }
+  .exam-countdown.soon{ color:var(--accent); }
+  .exam-del{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:15px;
+    cursor:pointer;
+    padding:2px 4px;
+  }
+  .exams-empty{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    padding:4px 2px 8px 2px;
+  }
+
   .fab{
     position:fixed;
     bottom:24px; right:22px;
@@ -545,6 +623,42 @@
   <div class="stat-hours" id="statHours">🕒 0 hs esta semana</div>
 </div>
 
+<div class="exams-section">
+  <div class="exams-header">
+    <span class="exams-title">🎓 Parciales</span>
+    <button class="exams-add" id="btnAddExam">+ Agregar</button>
+  </div>
+  <div id="examsList"></div>
+</div>
+
+<div class="overlay" id="examOverlay">
+  <div class="sheet">
+    <h2 id="examSheetTitle">Nuevo parcial</h2>
+
+    <label>Materia</label>
+    <input type="text" id="eName" placeholder="ej: Análisis Matemático">
+
+    <div class="row2">
+      <div>
+        <label>Fecha</label>
+        <input type="date" id="eDate">
+      </div>
+      <div>
+        <label>Hora (opcional)</label>
+        <input type="time" id="eTime">
+      </div>
+    </div>
+
+    <label>Nota (opcional)</label>
+    <input type="text" id="eNote" placeholder="ej: Traer calculadora, aula 12">
+
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="btnExamCancel">Cancelar</button>
+      <button class="btn btn-primary" id="btnExamSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="daybar" id="daybar"></div>
 
 <main id="main"></main>
@@ -621,6 +735,7 @@ const DAY_FULL = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Do
 const COLORS = ['#c2564a','#2a3b52','#7a8f5c','#c99b3f','#8a5a8f','#3d7a8a'];
 
 let classes = [];
+let exams = [];
 let activeDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 let editingId = null;
 let pickedDays = new Set();
@@ -650,6 +765,114 @@ async function saveClasses(){
     showToast('No se pudo guardar :(');
   }
 }
+
+async function loadExams(){
+  try{
+    const res = await window.storage.get('parciales');
+    exams = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    exams = [];
+  }
+  renderExams();
+}
+
+async function saveExams(){
+  try{
+    await window.storage.set('parciales', JSON.stringify(exams));
+  }catch(e){
+    showToast('No se pudo guardar :(');
+  }
+}
+
+function examCountdownText(examDate){
+  const now = new Date();
+  const diffMs = examDate - now;
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if(diffMs < 0){
+    return { text:'Ya pasó', cls:'past' };
+  }
+  if(diffDays === 0){
+    const diffH = Math.floor(diffMs / 3600000);
+    if(diffH < 1) return { text:'¡Es en menos de 1 hora!', cls:'soon' };
+    return { text:`Es hoy · faltan ${diffH} h`, cls:'soon' };
+  }
+  if(diffDays === 1) return { text:'Es mañana', cls:'soon' };
+  if(diffDays <= 3) return { text:`Faltan ${diffDays} días`, cls:'soon' };
+  return { text:`Faltan ${diffDays} días`, cls:'' };
+}
+
+function renderExams(){
+  const list = document.getElementById('examsList');
+  list.innerHTML = '';
+
+  if(exams.length === 0){
+    list.innerHTML = `<div class="exams-empty">No tenés parciales cargados todavía.</div>`;
+    return;
+  }
+
+  const sorted = [...exams].sort((a,b)=> new Date(a.fecha+'T'+(a.hora||'00:00')) - new Date(b.fecha+'T'+(b.hora||'00:00')));
+
+  sorted.forEach(ex=>{
+    const examDate = new Date(ex.fecha + 'T' + (ex.hora || '23:59'));
+    const cd = examCountdownText(examDate);
+    const dateFmt = examDate.toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short' }) + (ex.hora ? ` · ${ex.hora}` : '');
+
+    const card = document.createElement('div');
+    card.className = 'exam-card' + (cd.cls === 'past' ? ' past' : cd.cls === 'soon' ? ' soon' : '');
+    card.innerHTML = `
+      <div class="exam-info">
+        <div class="exam-name">${escapeHtml(ex.materia)}</div>
+        <div class="exam-date">${dateFmt}</div>
+        ${ex.nota ? `<div class="exam-note">${escapeHtml(ex.nota)}</div>` : ''}
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <div class="exam-countdown${cd.cls === 'soon' ? ' soon' : ''}">${cd.text}</div>
+        <button class="exam-del" data-del-exam="${ex.id}">✕</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('[data-del-exam]').forEach(b=>{
+    b.onclick = async ()=>{
+      exams = exams.filter(e=>e.id !== b.getAttribute('data-del-exam'));
+      await saveExams();
+      renderExams();
+      showToast('Parcial eliminado');
+    };
+  });
+}
+
+document.getElementById('btnAddExam').onclick = ()=>{
+  document.getElementById('examSheetTitle').textContent = 'Nuevo parcial';
+  document.getElementById('eName').value = '';
+  document.getElementById('eDate').value = '';
+  document.getElementById('eTime').value = '';
+  document.getElementById('eNote').value = '';
+  document.getElementById('examOverlay').classList.add('open');
+};
+document.getElementById('btnExamCancel').onclick = ()=>{
+  document.getElementById('examOverlay').classList.remove('open');
+};
+document.getElementById('examOverlay').onclick = (e)=>{
+  if(e.target.id === 'examOverlay') document.getElementById('examOverlay').classList.remove('open');
+};
+document.getElementById('btnExamSave').onclick = async ()=>{
+  const materia = document.getElementById('eName').value.trim();
+  const fecha = document.getElementById('eDate').value;
+  const hora = document.getElementById('eTime').value;
+  const nota = document.getElementById('eNote').value.trim();
+
+  if(!materia){ showToast('Poné la materia del parcial'); return; }
+  if(!fecha){ showToast('Elegí una fecha'); return; }
+
+  exams.push({ id:'e'+Date.now(), materia, fecha, hora, nota });
+  await saveExams();
+  renderExams();
+  document.getElementById('examOverlay').classList.remove('open');
+  showToast('Parcial guardado ✓');
+};
 
 function renderDaybar(){
   const bar = document.getElementById('daybar');
@@ -778,7 +1001,7 @@ function renderStats(){
   hoursEl.textContent = `🕒 ${hsTxt} hs de cursada esta semana`;
 }
 
-setInterval(renderStats, 30000);
+setInterval(()=>{ renderStats(); renderExams(); }, 30000);
 
 function escapeHtml(s){
   return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -1178,6 +1401,7 @@ async function init(){
   loadVista();
   render();
   loadClasses();
+  loadExams();
 }
 init();
 </script>
