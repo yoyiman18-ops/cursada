@@ -388,6 +388,29 @@
     align-items:center;
     margin-bottom:8px;
   }
+  .exams-title-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+  }
+  .exams-chevron{
+    background:none;
+    border:none;
+    font-size:13px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:2px 4px;
+    transition:transform .2s ease;
+    line-height:1;
+  }
+  .exams-chevron.collapsed{
+    transform:rotate(-90deg);
+  }
+  #examsList.collapsed{
+    display:none;
+  }
+  .exam-card{ cursor:pointer; }
   .exams-title{
     font-family:'Fraunces';
     font-weight:600;
@@ -415,7 +438,6 @@
     gap:10px;
     border-left:5px solid var(--navy);
   }
-  .exam-card.soon{ border-left-color:var(--accent); }
   .exam-card.past{ opacity:0.5; }
   .exam-info .exam-name{
     font-family:'Fraunces';
@@ -624,8 +646,11 @@
 </div>
 
 <div class="exams-section">
-  <div class="exams-header">
-    <span class="exams-title">🎓 Parciales</span>
+  <div class="exams-header" id="examsHeader">
+    <div class="exams-title-row">
+      <button class="exams-chevron" id="examsChevron">▾</button>
+      <span class="exams-title">🎓 Parciales</span>
+    </div>
     <button class="exams-add" id="btnAddExam">+ Agregar</button>
   </div>
   <div id="examsList"></div>
@@ -652,7 +677,11 @@
     <label>Nota (opcional)</label>
     <input type="text" id="eNote" placeholder="ej: Traer calculadora, aula 12">
 
+    <label>Color</label>
+    <div class="colors" id="examColorPicker"></div>
+
     <div class="sheet-actions">
+      <button class="btn btn-ghost" id="btnExamDelete" style="display:none;">Eliminar</button>
       <button class="btn btn-ghost" id="btnExamCancel">Cancelar</button>
       <button class="btn btn-primary" id="btnExamSave">Guardar</button>
     </div>
@@ -802,6 +831,10 @@ function examCountdownText(examDate){
   return { text:`Faltan ${diffDays} días`, cls:'' };
 }
 
+let examsCollapsed = false;
+let editingExamId = null;
+let pickedExamColor = COLORS[0];
+
 function renderExams(){
   const list = document.getElementById('examsList');
   list.innerHTML = '';
@@ -817,9 +850,11 @@ function renderExams(){
     const examDate = new Date(ex.fecha + 'T' + (ex.hora || '23:59'));
     const cd = examCountdownText(examDate);
     const dateFmt = examDate.toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short' }) + (ex.hora ? ` · ${ex.hora}` : '');
+    const color = ex.color || COLORS[1];
 
     const card = document.createElement('div');
-    card.className = 'exam-card' + (cd.cls === 'past' ? ' past' : cd.cls === 'soon' ? ' soon' : '');
+    card.className = 'exam-card' + (cd.cls === 'past' ? ' past' : '');
+    card.style.borderLeftColor = color;
     card.innerHTML = `
       <div class="exam-info">
         <div class="exam-name">${escapeHtml(ex.materia)}</div>
@@ -831,12 +866,17 @@ function renderExams(){
         <button class="exam-del" data-del-exam="${ex.id}">✕</button>
       </div>
     `;
+    card.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-del-exam]')) return;
+      openExamSheet(ex.id);
+    });
     list.appendChild(card);
   });
 
   list.querySelectorAll('[data-del-exam]').forEach(b=>{
-    b.onclick = async ()=>{
-      exams = exams.filter(e=>e.id !== b.getAttribute('data-del-exam'));
+    b.onclick = async (e)=>{
+      e.stopPropagation();
+      exams = exams.filter(x=>x.id !== b.getAttribute('data-del-exam'));
       await saveExams();
       renderExams();
       showToast('Parcial eliminado');
@@ -844,19 +884,59 @@ function renderExams(){
   });
 }
 
-document.getElementById('btnAddExam').onclick = ()=>{
-  document.getElementById('examSheetTitle').textContent = 'Nuevo parcial';
-  document.getElementById('eName').value = '';
-  document.getElementById('eDate').value = '';
-  document.getElementById('eTime').value = '';
-  document.getElementById('eNote').value = '';
+function buildExamColorPicker(){
+  const cp = document.getElementById('examColorPicker');
+  cp.innerHTML = '';
+  COLORS.forEach(col=>{
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (pickedExamColor === col ? ' picked' : '');
+    sw.style.background = col;
+    sw.onclick = ()=>{ pickedExamColor = col; buildExamColorPicker(); };
+    cp.appendChild(sw);
+  });
+}
+
+function openExamSheet(id){
+  editingExamId = id || null;
+  const title = document.getElementById('examSheetTitle');
+  const delBtn = document.getElementById('btnExamDelete');
+
+  if(id){
+    const ex = exams.find(x=>x.id === id);
+    title.textContent = 'Editar parcial';
+    document.getElementById('eName').value = ex.materia;
+    document.getElementById('eDate').value = ex.fecha;
+    document.getElementById('eTime').value = ex.hora || '';
+    document.getElementById('eNote').value = ex.nota || '';
+    pickedExamColor = ex.color || COLORS[1];
+    delBtn.style.display = 'block';
+  } else {
+    title.textContent = 'Nuevo parcial';
+    document.getElementById('eName').value = '';
+    document.getElementById('eDate').value = '';
+    document.getElementById('eTime').value = '';
+    document.getElementById('eNote').value = '';
+    pickedExamColor = COLORS[1];
+    delBtn.style.display = 'none';
+  }
+  buildExamColorPicker();
   document.getElementById('examOverlay').classList.add('open');
-};
+}
+
+document.getElementById('btnAddExam').onclick = ()=> openExamSheet(null);
 document.getElementById('btnExamCancel').onclick = ()=>{
   document.getElementById('examOverlay').classList.remove('open');
 };
 document.getElementById('examOverlay').onclick = (e)=>{
   if(e.target.id === 'examOverlay') document.getElementById('examOverlay').classList.remove('open');
+};
+document.getElementById('btnExamDelete').onclick = async ()=>{
+  if(!editingExamId) return;
+  exams = exams.filter(x=>x.id !== editingExamId);
+  await saveExams();
+  renderExams();
+  document.getElementById('examOverlay').classList.remove('open');
+  showToast('Parcial eliminado');
 };
 document.getElementById('btnExamSave').onclick = async ()=>{
   const materia = document.getElementById('eName').value.trim();
@@ -867,14 +947,30 @@ document.getElementById('btnExamSave').onclick = async ()=>{
   if(!materia){ showToast('Poné la materia del parcial'); return; }
   if(!fecha){ showToast('Elegí una fecha'); return; }
 
-  exams.push({ id:'e'+Date.now(), materia, fecha, hora, nota });
+  if(editingExamId){
+    const ex = exams.find(x=>x.id === editingExamId);
+    ex.materia = materia; ex.fecha = fecha; ex.hora = hora; ex.nota = nota; ex.color = pickedExamColor;
+  } else {
+    exams.push({ id:'e'+Date.now(), materia, fecha, hora, nota, color: pickedExamColor });
+  }
   await saveExams();
   renderExams();
   document.getElementById('examOverlay').classList.remove('open');
   showToast('Parcial guardado ✓');
 };
 
+document.getElementById('examsChevron').onclick = toggleExamsCollapse;
+document.getElementById('examsHeader').querySelector('.exams-title-row').onclick = toggleExamsCollapse;
+
+async function toggleExamsCollapse(){
+  examsCollapsed = !examsCollapsed;
+  document.getElementById('examsChevron').classList.toggle('collapsed', examsCollapsed);
+  document.getElementById('examsList').classList.toggle('collapsed', examsCollapsed);
+  await saveSettings();
+}
+
 function renderDaybar(){
+
   const bar = document.getElementById('daybar');
   bar.innerHTML = '';
   DAYS.forEach((d, i)=>{
@@ -1354,7 +1450,8 @@ async function saveSettings(){
   const data = {
     ciudad: document.getElementById('cityLabel').textContent === 'Elegí tu ciudad' ? '' : document.getElementById('cityLabel').textContent,
     tema: currentTheme,
-    vista: vista
+    vista: vista,
+    examsCollapsed: examsCollapsed
   };
   try{
     const result = await window.storage.set('ajustes', JSON.stringify(data));
@@ -1372,6 +1469,11 @@ async function loadSettings(){
       if(data.ciudad) document.getElementById('cityLabel').textContent = data.ciudad;
       if(data.tema) currentTheme = data.tema;
       if(data.vista) vista = data.vista;
+      if(data.examsCollapsed){
+        examsCollapsed = true;
+        document.getElementById('examsChevron').classList.add('collapsed');
+        document.getElementById('examsList').classList.add('collapsed');
+      }
     }
   }catch(e){}
 }
